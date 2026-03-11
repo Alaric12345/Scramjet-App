@@ -1,10 +1,10 @@
+import basicAuth from '@fastify/basic-auth'
 import { createServer } from "node:http";
 import { fileURLToPath } from "url";
 import { hostname } from "node:os";
 import { server as wisp, logging } from "@mercuryworkshop/wisp-js/server";
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
-
 import { scramjetPath } from "@mercuryworkshop/scramjet/path";
 import { libcurlPath } from "@mercuryworkshop/libcurl-transport";
 import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
@@ -33,6 +33,24 @@ const fastify = Fastify({
 				else socket.end();
 			});
 	},
+});
+fastify.register(basicAuth, {
+    validate: async (username, password) => {
+        if (username !== 'admin' || password !== 'Hello') {
+            throw new Error('Unauthorized');
+        }
+    },
+    authenticate: { realm: 'Scramjet Proxy' }
+});
+
+fastify.addHook('onRequest', (req, reply, done) => {
+    fastify.basicAuth(req, reply, (err) => {
+        if (err) {
+            reply.header('WWW-Authenticate', 'Basic realm="Scramjet Proxy"').code(401).send();
+        } else {
+            done();
+        }
+    });
 });
 
 fastify.register(fastifyStatic, {
