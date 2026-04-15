@@ -1,20 +1,21 @@
-FROM node:18-alpine
+# Use Node 20 as requested in your package.json
+FROM node:20-alpine
 
-ENV NODE_ENV=production
-ARG NPM_BUILD="npm install --omit=dev"
-EXPOSE 8080/tcp
-
-LABEL maintainer="Mercury Workshop"
-LABEL summary="Scramjet Demo Image"
-LABEL description="Example application of Scramjet"
+# Install pnpm
+RUN npm install -g pnpm
 
 WORKDIR /app
 
-COPY ["package.json", "package-lock.json", "./"]
-RUN apk add --upgrade --no-cache python3 make g++
-RUN $NPM_BUILD
+# Copy package files (Note the pnpm-lock.yaml)
+COPY package.json pnpm-lock.yaml* ./
 
+# Install dependencies
+RUN pnpm install --no-frozen-lockfile
+
+# Copy the rest of the files
 COPY . .
 
-ENTRYPOINT [ "node" ]
-CMD ["src/index.js"]
+# Match the port you set in Back4app
+EXPOSE 8080
+
+CMD ["pnpm", "start"]
