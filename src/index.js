@@ -22,6 +22,10 @@ Object.assign(wisp.options, {
 
 const fastify = Fastify();
 
+fastify.get('/health', async () => {
+    return { status: 'ok' };
+});
+
 fastify.register(basicAuth, {
     validate: async (username, password) => {
         if (username !== 'Alaric' || password !== 'Scramjet!') {
@@ -42,10 +46,6 @@ fastify.addHook('onRequest', (req, reply, done) => {
             done();
         }
     });
-});
-
-fastify.get('/health', async () => {
-    return { status: 'ok' };
 });
 
 fastify.register(fastifyStatic, {
