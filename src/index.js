@@ -44,6 +44,9 @@ fastify.register(basicAuth, {
 });
 
 fastify.addHook('onRequest', (req, reply, done) => {
+    if (req.url === '/health' || req.url === '/health/') {
+        return done();
+    }
     fastify.basicAuth(req, reply, (err) => {
         if (err) {
             reply.header('WWW-Authenticate', 'Basic realm="Scramjet Proxy"').code(401).send();
@@ -51,6 +54,10 @@ fastify.addHook('onRequest', (req, reply, done) => {
             done();
         }
     });
+});
+
+fastify.get('/health', async () => {
+    return { status: 'ok' };
 });
 
 fastify.register(fastifyStatic, {
